@@ -42,7 +42,6 @@ void ThreadPool::submit(std::function<void()> task) {
     {
         std::lock_guard lock(mutex);
         tasks_.push(std::move(task));
-
         std::cout << "Task submitted to thread pool. Total tasks in queue: " << tasks_.size() << "\n" << std::endl;
     };
 
