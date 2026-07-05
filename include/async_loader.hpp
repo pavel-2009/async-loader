@@ -1,6 +1,6 @@
 #pragma once
 
-#include <boost/asio/awaitable.hpp>
+#include <boost/asio.hpp>
 #include "request.hpp"
 #include "thread_pool.hpp"
 
@@ -12,5 +12,5 @@ class AsyncLoader {
     public:
         explicit AsyncLoader(ThreadPool& pool);
 
-        boost::asio::awaitable<std::string> load(const Request& request);
+        boost::asio::awaitable<void> load(const Request& request);
 };
