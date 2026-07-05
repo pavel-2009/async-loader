@@ -14,11 +14,11 @@
 AsyncLoader::AsyncLoader(ThreadPool& pool) : pool_(pool) {}
 
 
-boost::asio::awaitable<void> AsyncLoader::load(const Request& request) {
-    auto promise = std::make_shared<std::promise<std::string>>();
-    std::future<std::string> future = promise->get_future();
+boost::asio::awaitable<std::string> AsyncLoader::load(const Request& request) {
 
-    pool_.submit([request, promise]() {
+    auto executor = co_await boost::asio::this_coro::executor;
+
+    pool_.submit([executor, request]() {
         std::cout << "[AsyncLoader, Thread " << std::this_thread::get_id() << "] Loading request " << request.id << " from " << request.filename << "\n" << std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2)); // Simulate a delay for loading
@@ -35,12 +35,12 @@ boost::asio::awaitable<void> AsyncLoader::load(const Request& request) {
             result = "Failed to open file: " + request.filename;
         };
 
-        promise->set_value(result);
+        boost::asio::post(executor, [result]() {
+            std::cout << "[AsyncLoader, Thread " << std::this_thread::get_id() << "] Finished loading request. Result:\n" << result << "\n" << std::endl;
+        });
+
     });
 
-    auto executor = co_await boost::asio::this_coro::executor;
-    co_await boost::asio::post(executor, boost::asio::use_awaitable);
-
-    co_return;
+    co_return result;
 };
     
